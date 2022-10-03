@@ -1,43 +1,45 @@
-import { productsDB } from '../src/data/productsDB';
-import { getProductByCategory, getProductById } from '../src/products';
+const request = require('supertest');
+const { app, server } = require('../index');
+
+
+afterEach(() => {
+   server.close();
+});
 
 describe('Registro de usuarios', () => {
 
-   test('Correcto registro de usuario', () => {
+   test('Correcto registro de usuario', async () => {
 
-      const id = 1;
-      // {firstname, lastname, birthdate, email, password, repitePassword} = 
+      const data = {
+         firstname: "prueba",
+         lastname: "registro",
+         birthdate: "30-01-2000",
+         email: "ayrton@email.com",
+         password: 123456,
+         repitepassword: 123456
+      }
 
-      const product = getProductById(id);
+      const { body, statusCode } = await request(app).post('/users').send(data);
 
-      // expect(product).toEqual({ id: 1, name: 'Fideos', category: 'alimentos' });
-      // expect(product).not.toBeFalsy();
-      expect(product).toEqual(productsDB.find(product => product.id === id));
-      expect(product).toBeTruthy();
-
+      expect(statusCode).toBe(201);
+      expect(body).toMatchObject({ ok:expect.any(Boolean),msg: expect.any(String) });
    });
 
-   test('getProductById tiene que retornar undefined', () => {
+   test('Error en repite password', async () => {
 
-      const id = 10;
+      const data = {
+         firstname: "prueba",
+         lastname: "registro",
+         birthdate: "30-01-2000",
+         email: "ayrton@email.com",
+         password: 123456,
+         repitepassword: 1234
+      }
 
-      const product = getProductById(id);
+      const { body, statusCode } = await request(app).post('/users').send(data);
 
-      expect(product).toBeFalsy();
-   });
-
-   test('getProductByCategory tiene que retornar un array de productos', () => {
-
-      const category = 'alimentos';
-
-      const product = getProductByCategory(category);
-
-      expect(product.length).toBe(3);
-      expect(product).toEqual(expect.arrayContaining([
-         expect.objectContaining({
-            id: expect.any(Number)
-         })
-      ]))
+      expect(statusCode).toBe(400);
+      expect(body).toMatchObject({ ok:expect.any(Boolean),msg: expect.any(String) });
    });
 
 });
